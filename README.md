@@ -2,6 +2,8 @@
 
 > Feed a CCTV-style image or video → the model estimates how many people are in the frame and outputs a density heatmap.
 
+**Fully functional** — React frontend integrated with Flask backend and CSRNet deep learning model.
+
 ---
 
 ## 🏗️ Architecture
@@ -71,6 +73,18 @@ npm run dev
 
 The Vite dev server starts at **http://localhost:5173** with API proxy to Flask.
 
+### 3. Docker (Alternative)
+
+```bash
+# Build and run with Docker Compose
+docker compose up --build
+
+# The model checkpoint must exist at the project root:
+# ./csrnet_final.pth
+```
+
+The application is served at **http://localhost:5000**.
+
 ---
 
 ## 📡 API Endpoints
@@ -132,12 +146,14 @@ The Vite dev server starts at **http://localhost:5173** with API proxy to Flask.
 crownd-density-estimator/
 ├── csrnet_final.pth          # Pretrained CSRNet model (65 MB)
 ├── Crowd_Density_Estimator.ipynb  # ML training notebook
+├── Dockerfile                # Multi-stage Docker build
+├── docker-compose.yml        # Container orchestration
 │
 ├── backend/                   # Flask API server
 │   ├── app.py                 # Application factory
 │   ├── config.py              # Environment configs
 │   ├── wsgi.py                # Production WSGI entry
-│   ├── requirements.txt       # Python dependencies
+│   ├── requirements.txt       # Python dependencies (pinned)
 │   ├── api/                   # Route blueprints
 │   │   ├── routes_predict.py  # POST /api/predict
 │   │   ├── routes_health.py   # GET /api/health
@@ -161,15 +177,17 @@ crownd-density-estimator/
 │       └── helpers.py         # Response wrappers, timing
 │
 └── frontend/                  # React UI (Vite)
-    ├── src/App.jsx            # Main dashboard
-    └── src/components/        # UI components
+    ├── index.html             # HTML entry with SEO meta
+    ├── vite.config.js         # Dev proxy to Flask backend
+    ├── src/App.jsx            # Main dashboard (API-integrated)
+    └── src/App.css            # Design system (responsive)
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-Set the `FLASK_ENV` environment variable:
+Set the `APP_ENV` environment variable:
 
 | Value | Description |
 |-------|-------------|

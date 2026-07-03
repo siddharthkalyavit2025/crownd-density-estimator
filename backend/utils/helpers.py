@@ -1,35 +1,11 @@
 """Utility functions for the Crowd Density Estimator backend."""
 
-import time
 import uuid
 from typing import Any, Dict, Optional, Tuple
 
 from flask import jsonify
 
 
-class TimingContext:
-    """Context manager for measuring elapsed time in milliseconds.
-
-    Usage::
-
-        with TimingContext() as timer:
-            do_work()
-        print(f"Took {timer.elapsed_ms:.1f} ms")
-    """
-
-    def __init__(self) -> None:
-        self.start_time: float = 0
-        self.end_time: float = 0
-        self.elapsed_ms: float = 0
-
-    def __enter__(self) -> "TimingContext":
-        self.start_time = time.perf_counter()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
-        self.end_time = time.perf_counter()
-        self.elapsed_ms = (self.end_time - self.start_time) * 1000
-        return False
 
 
 def format_inference_time(ms: float) -> str:
@@ -47,28 +23,6 @@ def format_inference_time(ms: float) -> str:
         return f"{ms / 1000:.2f} s"
 
 
-def classify_density(count: float, thresholds: Optional[Dict[str, int]] = None) -> str:
-    """Classify crowd density based on estimated count.
-
-    Args:
-        count: Estimated crowd count.
-        thresholds: Optional dict with keys ``'low'``, ``'moderate'``, ``'high'``.
-
-    Returns:
-        One of ``'Low Density'``, ``'Moderate Density'``,
-        ``'High Density'``, or ``'Critical Density'``.
-    """
-    if thresholds is None:
-        thresholds = {"low": 20, "moderate": 50, "high": 150}
-
-    if count < thresholds.get("low", 20):
-        return "Low Density"
-    elif count < thresholds.get("moderate", 50):
-        return "Moderate Density"
-    elif count < thresholds.get("high", 150):
-        return "High Density"
-    else:
-        return "Critical Density"
 
 
 def generate_analysis_id() -> str:
@@ -108,20 +62,4 @@ def error_response(
     return jsonify({"success": False, "error": error_body}), status_code
 
 
-def get_file_size_str(size_bytes: int) -> str:
-    """Convert bytes to a human-readable file-size string.
 
-    Args:
-        size_bytes: Size in bytes.
-
-    Returns:
-        Formatted string like ``'2.4 MB'``.
-    """
-    if size_bytes < 1024:
-        return f"{size_bytes} B"
-    elif size_bytes < 1024 * 1024:
-        return f"{size_bytes / 1024:.1f} KB"
-    elif size_bytes < 1024 * 1024 * 1024:
-        return f"{size_bytes / (1024 * 1024):.1f} MB"
-    else:
-        return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"

@@ -28,7 +28,7 @@ def create_app(config_name: str = None) -> Flask:
 
     # ── Configuration ────────────────────────────────────────────────────
     from config import get_config
-    app.config.from_object(get_config())
+    app.config.from_object(get_config(config_name))
 
     # ── Logging ──────────────────────────────────────────────────────────
     from utils.logger import setup_logger
@@ -103,7 +103,7 @@ def create_app(config_name: str = None) -> Flask:
 
     logger.info(
         "Crowd Density Estimator backend started (env: %s)",
-        app.config.get("ENV", "development"),
+        os.environ.get("APP_ENV", "development"),
     )
     return app
 

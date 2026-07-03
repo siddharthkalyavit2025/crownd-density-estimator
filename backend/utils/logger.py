@@ -61,24 +61,27 @@ def setup_logger(
     log_dir: Optional[str] = None,
     level: int = logging.DEBUG,
 ) -> logging.Logger:
-    """Create and return a fully-configured :class:`logging.Logger`.
+    """Configure the **root** logger with file and console handlers.
+
+    All module-level loggers created via ``logging.getLogger(__name__)``
+    will automatically inherit the root logger's handlers and level.
 
     Args:
-        name: Logger name (typically ``__name__`` of the calling module).
+        name: Used as the log-file basename (e.g. ``'crowd_density'``).
         log_dir: Directory for log files.  Created if it does not exist.
                  Defaults to ``<backend>/logs`` when *None*.
         level: Minimum log level.  Defaults to ``DEBUG``.
 
     Returns:
-        A :class:`logging.Logger` instance with both file and console handlers.
+        The root :class:`logging.Logger`.
     """
-    logger = logging.getLogger(name)
+    root_logger = logging.getLogger()
 
     # Prevent adding duplicate handlers when called multiple times.
-    if logger.handlers:
-        return logger
+    if root_logger.handlers:
+        return root_logger
 
-    logger.setLevel(level)
+    root_logger.setLevel(level)
 
     # Resolve the log directory.
     if log_dir is None:
@@ -106,7 +109,7 @@ def setup_logger(
         _ColouredFormatter(console_fmt, datefmt="%H:%M:%S"),
     )
 
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
 
-    return logger
+    return root_logger

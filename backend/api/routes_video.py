@@ -12,6 +12,7 @@ from utils.helpers import (
     format_inference_time,
 )
 from utils.file_manager import FileManager
+from middleware.rate_limiter import rate_limit
 from middleware.validators import validate_video_file
 from core.video_processor import extract_frames, get_video_info
 from core.inference import run_inference, classify_density
@@ -27,6 +28,7 @@ video_bp = Blueprint("video", __name__)
 # ── POST /video/extract-frames ─────────────────────────────────────────────
 
 @video_bp.route("/video/extract-frames", methods=["POST"])
+@rate_limit()
 def extract_video_frames():
     """Upload a video and extract frames at a configurable interval.
 
@@ -91,6 +93,7 @@ def extract_video_frames():
 # ── POST /video/analyze-batch ──────────────────────────────────────────────
 
 @video_bp.route("/video/analyze-batch", methods=["POST"])
+@rate_limit()
 def analyze_batch():
     """Run crowd density analysis on a batch of frame images.
 
@@ -144,8 +147,8 @@ def analyze_batch():
                 aid = generate_analysis_id()
                 analysis = Analysis(
                     analysis_id=aid,
-                    original_image_path=frame_path,
-                    heatmap_path=os.path.join(output_dir, heatmap_fname),
+                    original_image_path=filename,
+                    heatmap_path=heatmap_fname,
                     estimated_count=count,
                     density_status=status,
                     inference_time_ms=inf["inference_time_ms"],

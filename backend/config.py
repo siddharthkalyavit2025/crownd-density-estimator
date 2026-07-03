@@ -2,15 +2,14 @@
 config.py — Configuration management for the Crowd Density Estimator backend.
 
 Provides environment-specific configuration classes and a factory function
-``get_config()`` that selects the appropriate config based on the ``FLASK_ENV``
+``get_config()`` that selects the appropriate config based on the ``APP_ENV``
 environment variable.
 """
 
 from __future__ import annotations
 
 import os
-from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, Optional, Set
 
 
 # Resolve the absolute path to the backend/ directory so that all derived
@@ -46,16 +45,6 @@ class BaseConfig:
     # ── Rate limiting ─────────────────────────────────────────────────────
     RATE_LIMIT_PER_MINUTE: int = 30
 
-    # ── Density thresholds ────────────────────────────────────────────────
-    # Mapping: status_label → upper-bound (exclusive).  The last entry
-    # (``critical``) has no upper bound and is triggered when count >= 150.
-    DENSITY_THRESHOLDS: Dict[str, int] = {
-        "low": 20,
-        "moderate": 50,
-        "high": 150,
-        "critical": 150,  # count >= 150
-    }
-
 
 class DevelopmentConfig(BaseConfig):
     """Configuration for local development."""
@@ -89,8 +78,12 @@ _CONFIG_MAP: Dict[str, type] = {
 }
 
 
-def get_config() -> BaseConfig:
-    """Return the configuration instance that matches ``FLASK_ENV``.
+def get_config(config_name: Optional[str] = None) -> BaseConfig:
+    """Return the configuration instance that matches ``APP_ENV``.
+
+    Args:
+        config_name: Optional override for the environment name.
+            When *None*, falls back to the ``APP_ENV`` env var.
 
     Falls back to :class:`DevelopmentConfig` when the environment variable is
     not set or contains an unrecognised value.
@@ -98,6 +91,6 @@ def get_config() -> BaseConfig:
     Returns:
         An instance of the appropriate configuration class.
     """
-    env: str = os.environ.get("FLASK_ENV", "development").lower()
+    env: str = (config_name or os.environ.get("APP_ENV", "development")).lower()
     config_cls = _CONFIG_MAP.get(env, DevelopmentConfig)
     return config_cls()

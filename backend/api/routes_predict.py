@@ -19,6 +19,7 @@ from core.heatmap import generate_heatmap, generate_overlay
 from core.inference import classify_density, run_inference
 from database.db import db
 from database.models import Analysis
+from middleware.rate_limiter import rate_limit
 from middleware.validators import validate_image_file
 from utils.file_manager import FileManager
 from utils.helpers import (
@@ -34,6 +35,7 @@ predict_bp = Blueprint("predict", __name__)
 
 
 @predict_bp.route("/predict", methods=["POST"])
+@rate_limit()
 def predict() -> tuple[Dict[str, Any], int]:
     """Run crowd-density prediction on an uploaded image.
 
@@ -153,15 +155,15 @@ def predict() -> tuple[Dict[str, Any], int]:
     except FileNotFoundError as exc:
         logger.error("File not found during prediction: %s", exc, exc_info=True)
         db.session.rollback()
-        return error_response(f"File processing error: {exc}", 500)
+        return error_response("File processing error. Please try again.", 500)
 
     except RuntimeError as exc:
         # Covers model-not-loaded / inference failures raised by core layer
         logger.error("Inference runtime error: %s", exc, exc_info=True)
         db.session.rollback()
-        return error_response(f"Inference error: {exc}", 503)
+        return error_response("Model inference failed. The model may not be loaded.", 503)
 
     except Exception as exc:  # noqa: BLE001 – catch-all for unexpected errors
         logger.exception("Unexpected error in /predict")
         db.session.rollback()
-        return error_response(f"Internal server error: {exc}", 500)
+        return error_response("Internal server error. Please try again.", 500)

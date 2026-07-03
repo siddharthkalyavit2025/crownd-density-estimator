@@ -4,7 +4,7 @@ import os
 import logging
 from typing import Any, Dict
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 from sqlalchemy import func, desc, asc
 
 from database.db import db
@@ -144,17 +144,23 @@ def delete_analysis(analysis_id: str):
             return error_response(f"Analysis '{analysis_id}' not found.", 404)
 
         # Remove associated files from disk
-        for filepath in [
-            analysis.original_image_path,
-            analysis.heatmap_path,
-            analysis.overlay_path,
-        ]:
-            if filepath and os.path.exists(filepath):
-                try:
-                    os.remove(filepath)
-                    logger.debug("Deleted file: %s", filepath)
-                except OSError as e:
-                    logger.warning("Failed to delete %s: %s", filepath, e)
+        upload_folder = current_app.config["UPLOAD_FOLDER"]
+        output_folder = current_app.config["OUTPUT_FOLDER"]
+
+        file_mappings = [
+            (analysis.heatmap_path, output_folder),
+            (analysis.overlay_path, output_folder),
+            (analysis.original_image_path, upload_folder),
+        ]
+        for filename, folder in file_mappings:
+            if filename:
+                full_path = os.path.join(folder, filename)
+                if os.path.exists(full_path):
+                    try:
+                        os.remove(full_path)
+                        logger.debug("Deleted file: %s", full_path)
+                    except OSError as e:
+                        logger.warning("Failed to delete %s: %s", full_path, e)
 
         db.session.delete(analysis)
         db.session.commit()

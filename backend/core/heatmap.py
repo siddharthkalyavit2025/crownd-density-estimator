@@ -16,7 +16,6 @@ from typing import Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -93,13 +92,13 @@ def generate_overlay(
             dm = np.zeros_like(dm)
 
         # Apply jet colourmap → RGBA float array (H, W, 4)
-        colormap = cm.get_cmap("jet")
+        colormap = plt.colormaps["jet"]
         heatmap_rgba = colormap(dm)
 
         # Convert to RGB uint8 PIL image and resize
         heatmap_rgb = (heatmap_rgba[:, :, :3] * 255).astype(np.uint8)
         heatmap_image = Image.fromarray(heatmap_rgb, "RGB")
-        heatmap_image = heatmap_image.resize((orig_w, orig_h), Image.BILINEAR)
+        heatmap_image = heatmap_image.resize((orig_w, orig_h), Image.Resampling.BILINEAR)
 
         # Blend
         blended = Image.blend(original, heatmap_image, alpha=alpha)

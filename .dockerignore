@@ -1,0 +1,26 @@
+# ── Backend ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[codz]
+*.pth
+backend/uploads/
+backend/outputs/
+backend/logs/
+backend/instance/
+backend/*.db
+backend/venv/
+backend/env/
+
+# ── Frontend ─────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ── General ──────────────────────────────────────────────────────────
+.git/
+.gitignore
+.env
+*.md
+.vscode/
+.idea/
+*.log
+.agents/
